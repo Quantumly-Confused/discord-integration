@@ -66,7 +66,7 @@ async def load_cogs():
                     logger.error(f"Failed to load {extension}, {e}")
     print("Finished loading cogs")
 
-async def is_mod_or_admin():
+def is_mod_or_admin():
     async def predicate(ctx):
         mod_role = discord.utils.get(ctx.guild.roles, name="Moderation Team")
         owner_role = discord.utils.get(ctx.guild.roles, name="Owner")
