@@ -5,6 +5,7 @@ import asyncio
 import logging
 from discord.ext import commands
 import os
+import io
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -30,7 +31,8 @@ load_dotenv()
 bot = commands.Bot(command_prefix="/", intents=intents)
 bot.logger = logger
 
-# After the bot and its extensions have been loaded, synchronize the commands with discord
+
+
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user.name}")
@@ -47,7 +49,6 @@ async def on_ready():
     except Exception as e:
         print(e)
 
-# Load the cogs from the cogs folder
 async def load_cogs():
     """ Loads the cogs from the cogs folder"""
     print("Loading cogs...")
@@ -65,17 +66,24 @@ async def load_cogs():
                     logger.error(f"Failed to load {extension}, {e}")
     print("Finished loading cogs")
 
-# This class contains the admin commands for the bot
+async def is_mod_or_admin():
+    async def predicate(ctx):
+        mod_role = discord.utils.get(ctx.guild.roles, name="Moderation Team")
+        owner_role = discord.utils.get(ctx.guild.roles, name="Owner")
+        admin_role = discord.utils.get(ctx.guild.roles, name="Admin")
+        return mod_role in ctx.author.roles or admin_role in ctx.author.roles or owner_role in ctx.author.roles
+    return commands.check(predicate)
+
 class QCAdmin(commands.Cog):
     def __init__(self, bot):
-        """ Initializes the QCAdmin class"""
+        """ Initializes the QCAdmin class, which contains admin commands for the bot and cog management commands."""
         self.bot = bot
     
     # Create a group of commands for the interaction commands
     admin = app_commands.Group(name="admin", description="Admin commands for the bot.")
     
-    # This command syncs the commands with discord and makes sure that the app commands are up to date
     @admin.command(name="sync", description="Syncs the bot's commands with Discord.")
+    @is_mod_or_admin()
     async def sync_commands(self, Interaction: discord.Interaction):
         """ Syncs the bot's commands with Discord."""
         await Interaction.response.defer()
@@ -87,6 +95,47 @@ class QCAdmin(commands.Cog):
         except Exception as e:
             logger.error(f"Sync Failed. An error occurred: {e}")
             await Interaction.followup.send(f"Sync Failed. An error occurred: {e}")
+            
+    @admin.command(name="log", description="Gets or clears the bot's log file. Use 'get' or 'clear'.")
+    @is_mod_or_admin()
+    async def qc_log(Interaction: discord.Interaction, action: str = "get"):
+        log_file_path = "quantumly_confused_bot.log"
+        if action == "get":
+            try:
+                with open(log_file_path, "rb") as log_file:
+                    log_content = log_file.read()
+                    log_bytes = io.BytesIO(log_content)
+                    log_attachment = File(fp=log_bytes, filename="quantumly_confused_bot.log")
+                    await Interaction.response.send_message(file=log_attachment)
+                    logger.info(f"The log file was retrieved by {Interaction.user}.")
+            except FileNotFoundError:
+                await Interaction.response.send_message(
+                    "The log file could not be found.", ephemeral=True
+                )
+                logger.info("The log file could not be found.")
+
+        elif action == "clear":
+            try:
+                open(log_file_path, "w").close()
+                await Interaction.response.send_message(
+                    f"The log file has been cleared by {Interaction.user}.", ephemeral=True
+                )
+                logger.info(f"The log file has been cleared by {Interaction.user}.")
+            except Exception as e:
+                await Interaction.response.send_message(
+                    f"An error occurred: {str(e)}", ephemeral=True
+                )
+                logger.error(
+                    f"An error occurred while trying to clear the log file: {str(e)}"
+                )
+        else:
+            await Interaction.response.send_message(
+                "Invalid action. Use 'get' or 'clear'.", ephemeral=True
+            )
+            logger.warning(
+                f"Invalid action entered by {Interaction.user} for /admin log command."
+            )
+
             
     cog = app_commands.Group(name="cog", description="Manage Bot Cogs.")
     @cog.command(name="load", description="Loads a cog.")
