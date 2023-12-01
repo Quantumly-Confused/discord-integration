@@ -52,7 +52,7 @@ async def on_ready():
 async def load_cogs():
     """ Loads the cogs from the cogs folder"""
     print("Loading cogs...")
-    cog_folders = ["grafana_discord_integration", "rcon_commands"]
+    cog_folders = ["grafana_discord_integration", "rcon_commands", "qc_status"]
     for cog_folder in cog_folders:
         full_path = f"./cogs/{cog_folder}"
         for filename in os.listdir(full_path):

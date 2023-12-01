@@ -172,6 +172,15 @@ class Quantum_RCON_Commands_Cog(commands.Cog):
             response = mcr.command(command)
             await Interaction.response.send_message(f"Game difficulty set to {level}.")
             
+    @rcon.command(name="gamerule", description="Set or query a game rule value. Usage <rule> [value]")
+    @has_permissions(manage_channels=True)
+    async def gamerule(self, Interaction: discord.Interaction, rule: str, value: str=None):
+        """ Set or query a game rule value. Usage <rule> [value]"""
+        command = f"gamerule {rule} {value if value else ''}".strip()
+        with MCRcon(rcon_host, rcon_password, port=rcon_port) as mcr:
+            response = mcr.command(command)
+        await Interaction.response.send_message(f"Game rule {rule} set to {value}." if value else f"Game rule {rule} is {response}.")
+            
     @rcon.command(name="effect", description="Give an effect to a player or entity. Usage <target> <effect> [duration] [amplifier]")
     @has_permissions(manage_channels=True)
     async def effect(self, Interaction: discord.Interaction, target: str, effect: str, duration: int=None, amplifier: str=None):
@@ -189,9 +198,9 @@ class Quantum_RCON_Commands_Cog(commands.Cog):
         with MCRcon(rcon_host, rcon_password, port=rcon_port) as mcr:
             response = mcr.command(command)
             await Interaction.response.send_message(f"Enchantment {enchantment} applied to {player}.")
+            
     #discord - creation of world command group .  
     world = app_commands.Group(name="world", description="Send RCON commands to the Minecraft Server - Manage World Attributes.")
-    
     @world.command(name="fill", description="Fill a region with a specific block. Usage <start_pos> <end_pos> <block> [mode]")
     async def fill(self, Interaction: discord.Interaction, start_pos: int, end_pos: int, block: str, mode: str=None):
         """ Fill a region with a specific block. Usage <start_pos> <end_pos> <block> [mode]"""
@@ -309,7 +318,7 @@ class Quantum_RCON_Commands_Cog(commands.Cog):
             response = mcr.command(command)
             await Interaction.response.send_message(f"World spawn set to ({x}, {y}, {z}).")
 
-    @rcon.command(name="setspawnpoint", description="Set the world spawn. Usage [x y z]")
+    @world.command(name="setspawnpoint", description="Set the world spawn. Usage [x y z]")
     async def spawnpoint(self, Interaction: discord.Interaction, player: str,  pos: str=None):
         """ Set the world spawn. Usage [x y z]"""
         command = f"spawnpoint {player} {pos}"
@@ -336,7 +345,7 @@ class Quantum_RCON_Commands_Cog(commands.Cog):
             response = mcr.command(command)
             await Interaction.response.send_message(f"Teleported {player} to ({x}, {y}, {z}).")
 
-    @rcon.command(name="time", description="Set or query the world time. Usage <action> [value]")
+    @world.command(name="time", description="Set or query the world time. Usage <action> [value]")
     @has_permissions(manage_channels=True)
     async def time(self, Interaction: discord.Interaction, action: str, value: Optional[int] = None):
         """ Set or query the world time. Usage <action> [value]"""

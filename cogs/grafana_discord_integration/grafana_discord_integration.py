@@ -4,11 +4,14 @@ from dotenv import load_dotenv
 import asyncio
 from discord import app_commands
 from discord.ext import commands
+from discord.ui import View, Button
 from json import JSONDecodeError
 from io import BytesIO
 import os
 import aiohttp
 import json
+from discord import Button, ButtonStyle, InteractionType
+from typing import List
 
 #* Define the intents for the bot (this is required for the discord-py-slash-commands library)) 
 intents = discord.Intents.default()
@@ -35,38 +38,49 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
         self.panel_source = os.getenv('GRAFANA_PANEL_SOURCE')
         self.grafana_uid = os.getenv('GRAFANA_UID') 
         self.grafana_url = os.getenv('GRAFANA_URL')
+        self.load_panel_config()
+        
+    async def panel_autocomplete(
+            self,
+            interaction: discord.Interaction,
+            current: str) -> List[app_commands.Choice[str]]:
+        print('autocomplete invoked')
+        return [
+            app_commands.Choice(name=panel, value=panel)
+            for panel in self.panels if current.lower() in panel.lower()
+        ]
     
     #discord - Integration setup command group for use with the discord-py-slash-commands library, this will group the setup related commands beneath /set.    
-    grafanaset = app_commands.Group(name="set", description="Set up functions for the Grafana API Integration.")    
+    grafanaset = app_commands.Group(name="grafanaset", description="Set up functions for the Grafana API Integration.")    
     @grafanaset.command(name= "panel_source", description="Set up functions for the Grafana API Integration.")
-    async def set_panel_source(self, ctx, panel_source: str):
+    async def set_panel_source(self, Interaction: discord.Interaction, panel_source: str):
         """
         Set the Grafana panel source.
         Usage: /set panel_source [panel_source]
         """
         os.environ['GRAFANA_PANEL_SOURCE'] = panel_source
         self.panel_source = panel_source
-        await ctx.send(f"Grafana panel source set to: {panel_source}")
+        await Interaction.followup.send(f"Grafana panel source set to: {panel_source}")
         
     @grafanaset.command(name = "uid", description="Set up functions for the Grafana API Integration.")
-    async def set_grafana_uid(self, ctx, grafana_uid: str):
+    async def set_grafana_uid(self, Interaction: discord.Interaction, grafana_uid: str):
         """
         Set the Grafana UID.
         Usage: /set uid [grafana_uid]
         """
         os.environ['GRAFANA_UID'] = grafana_uid
         self.grafana_uid = grafana_uid
-        await ctx.send(f"Grafana UID set to: {grafana_uid}")
+        await Interaction.followup.send(f"Grafana UID set to: {grafana_uid}")
         
     @grafanaset.command(name = "url", description="Set the Grafana base url.")
-    async def set_grafana_url(self, ctx, grafana_url: str):
+    async def set_grafana_url(self, Interaction: discord.Interaction, grafana_url: str):
         """
         Set the Grafana URL.
         Usage: /set url [grafana_url]
         """
         os.environ['GRAFANA_URL'] = grafana_url
         self.grafana_url = grafana_url
-        await ctx.send(f"Grafana URL set to: {grafana_url}")
+        await Interaction.followup.send(f"Grafana URL set to: {grafana_url}")
     
     
         
@@ -141,6 +155,11 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
                 panel_files.append(panel_file)
         return panel_files
     
+    async def dashboard_autocomplete(self, interaction: discord.Interaction, current: str):
+        """ Provides autocomplete suggestions for dashboard names """
+        dashboards = await self.dashboard_names()
+        return [dashboard for dashboard in dashboards if current.lower() in dashboard.lower()]
+    
     async def fetch_rendered_dashboard(self, dashboard_name: str, width: int, height: int):
         """ Fetches the dashboard image from the Grafana API and sends it to the Discord channel
         :param dashboard_name: The name of the dashboard to fetch
@@ -167,7 +186,6 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
                     self.logger.error(f'Failed to fetch dashboard: {api_response.status}')
  
  
-
     #section Start of Discord bot commands. This command structure is based on the discord-py-slash-commands library
 
     #todo: add autocomplete to the dashboard and panel names
@@ -177,28 +195,29 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
     #discord - due to the time it takes to fetch the dashboard and panel images, all grafana api interaction responses are deferred and the user is sent a message when the image is ready to be sent.
     grafana = app_commands.Group(name="grafana", description="The Grafana discord integration cog is used to interact with the grafana API.")
     @grafana.command(name="dashboard", description="Display a Grafana dashboard")
-    async def grafana_dashboard(self, interaction: discord.Interaction, dashboard_name: str, width: int = 1800, height: int = 1200):
+    async def grafana_dashboard(self, Interaction: discord.Interaction, dashboard_name: str, width: int = 1800, height: int = 1200):
         """ Display a Grafana dashboard
         Usage: /grafana dashboard [dashboard_name] [width] [height]
         """
         print("Command invoked: grafana_dashboard")  # Debug print
-        if interaction.response.is_done():
+        if Interaction.response.is_done():
             return
-        await interaction.response.defer()
+        await Interaction.response.defer()
         try:
             dashboard_data = await self.fetch_rendered_dashboard(dashboard_name, width, height)
             if dashboard_data:
-                await interaction.followup.send(file=dashboard_data)
-                self.logger.info(f"Dashboard {dashboard_name} sent to {interaction.user.name}")
+                await Interaction.followup.send(file=dashboard_data)
+                self.logger.info(f"Dashboard {dashboard_name} sent to {Interaction.user.name}")
             else:
-                await interaction.followup.send("Failed to fetch the dashboard. Please check the dashboard name and try again.")
+                await Interaction.followup.send("Failed to fetch the dashboard. Please check the dashboard name and try again.")
         except Exception as e:
-            await interaction.followup.send("An error occurred while fetching the dashboard.")
+            await Interaction.followup.send("An error occurred while fetching the dashboard.")
             self.logger.error(f"Error fetching dashboard: {e}")
     
     # Fetches the panel image from the Grafana API and sends it to the Discord channel
     @grafana.command(name="panel", description="Display a Grafana panel")
-    async def grafana_panel(self, interaction: discord.Interaction, panel_name: str):
+    @app_commands.autocomplete(panel_name=panel_autocomplete)
+    async def grafana_panel(self, interaction: discord.Interaction, panel_name: str): 
         """ Display a Grafana panel
         Usage: /grafana panel [panel_name]
         """
@@ -241,7 +260,38 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
         else:
             await interaction.followup.send("No panels were found or an error occurred.")
             
-            
+        
+    #section: Interactive commands using Discord components
+    
+    @grafana.command(name="ipanel", description="Copy a Grafana panel with time range buttons")
+    async def grafana_ipanel(self, interaction: discord.Interaction, panel_name: str):
+        """ Render a Grafana Panel with time range buttons
+        Usage: /grafana ipanel [panel_name]
+        """
+        await interaction.response.defer()
+
+        view = GrafanaInteractiveView(self, panel_name)
+        buttons = [
+            Button(style=ButtonStyle.blue, label="1h", custom_id="1h"),
+            Button(style=ButtonStyle.blue, label="6h", custom_id="6h"),
+            Button(style=ButtonStyle.blue, label="12h", custom_id="12h"),
+            Button(style=ButtonStyle.blue, label="24h", custom_id="24h"),
+            Button(style=ButtonStyle.blue, label="7d", custom_id="7d"),
+            Button(style=ButtonStyle.blue, label="30d", custom_id="30d"),
+        ]
+        await interaction.followup.send("Choose the panel time scope:", view=view, components=[buttons])
+
+    @commands.Cog.listener()
+    async def on_button_click(interaction):
+        if interaction.component.custom_id in ["1h", "6h", "12h", "24h", "7d", "30d"]:
+            await interaction.respond(
+                type=InteractionType.UpdateMessage,
+                content=f"You selected {interaction.component.label} time range.",
+                components=[],
+            )
+            # TODO: Implement logic to fetch and send the panel image with the selected time range
+        
+        
     #! Needs work
     #todo: improve the display of the panels, maybe use a select menu
     @grafana.command(name="listpanels", description="List all panels available to display")
