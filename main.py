@@ -1,9 +1,11 @@
 import discord
+import sys
 from discord import app_commands
 from dotenv import load_dotenv
 import asyncio
 import logging
 from discord.ext import commands
+from discord import File
 import os
 import io
 
@@ -14,182 +16,139 @@ intents.guilds = True
 intents.reactions = True
 intents.members = True
 
-
-#* Logging setup for the bot
-logger = logging.getLogger("quantumly_confused_bot_log")
-logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler("quantumly_confused_bot.log", encoding="utf-8", mode="a")
-print(f"Log file created at: {handler.baseFilename}")
-handler.setFormatter(
-    logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
-)
-logger.addHandler(handler)
-
-#* Load the .env to get the discord tokens
 load_dotenv()
-
-bot = commands.Bot(command_prefix="/", intents=intents)
-bot.logger = logger
-
-
-
-@bot.event
-async def on_ready():
-    print(f"Logged in as {bot.user.name}")
-    print(f"Discord.py API version: {discord.__version__}")
-    print(f"Bot ID: {bot.user.id}")
-    print(f"Bot has loaded extensions: {bot.extensions}")
-    print("------")
-    logger.info(f"Logged in as {bot.user.name} Discord.py API version: {discord.__version__} Bot ID: {bot.user.id}")
-    print(f"{bot} has connected to Discord.")
-    logger.info(f"{bot} has connected to Discord.")
-    try:
-        synced = await bot.tree.sync()
-        print(f"Synced {synced} commands")
-    except Exception as e:
-        print(e)
-
-async def load_cogs():
-    """ Loads the cogs from the cogs folder"""
-    print("Loading cogs...")
-    cog_folders = ["grafana_discord_integration", "rcon_commands", "qc_status"]
-    for cog_folder in cog_folders:
-        full_path = f"./cogs/{cog_folder}"
-        for filename in os.listdir(full_path):
-            if filename.endswith(".py") and not filename.startswith("__init__"):
-                extension = f"cogs.{cog_folder}.{filename[:-3]}"
-                try:
-                    await bot.load_extension(extension)
-                    logger.info(f"Loaded {extension} successfully.")
-                except Exception as e:
-                    print(f"Failed to load {extension}, {e}")
-                    logger.error(f"Failed to load {extension}, {e}")
-    print("Finished loading cogs")
-
-def is_mod_or_admin():
-    async def predicate(ctx):
-        mod_role = discord.utils.get(ctx.guild.roles, name="Moderation Team")
-        owner_role = discord.utils.get(ctx.guild.roles, name="Owner")
-        admin_role = discord.utils.get(ctx.guild.roles, name="Admin")
-        return mod_role in ctx.author.roles or admin_role in ctx.author.roles or owner_role in ctx.author.roles
-    return commands.check(predicate)
 
 class QCAdmin(commands.Cog):
     def __init__(self, bot):
-        """ Initializes the QCAdmin class, which contains admin commands for the bot and cog management commands."""
+        """Initializes the QCAdmin class with necessary setup for admin commands and cog management."""
         self.bot = bot
-    
-    # Create a group of commands for the interaction commands
+        self.logger = self.setup_logger()
+        print("QCAdmin initialized")
+
+    def setup_logger(self):
+        """Sets up logging for the bot."""
+        logger = logging.getLogger("quantumly_confused_bot_log")
+        logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler("quantumly_confused_bot.log", encoding="utf-8", mode="a")
+        console_handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+        console_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+        logger.addHandler(handler)
+        logger.addHandler(console_handler)
+        print(f"Log file created at: {handler.baseFilename}")
+        return logger
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        """Event handler for when the bot is ready."""
+        print(f"Logged in as {self.bot.user.name}")
+        print(f"Discord.py API version: {discord.__version__}")
+        print(f"Bot ID: {self.bot.user.id}")
+        self.logger.info(f"Logged in as {self.bot.user.name} Discord.py API version: {discord.__version__} Bot ID: {self.bot.user.id}")
+        try:
+            synced = await self.bot.tree.sync()
+            print(f"Synced {len(synced)} commands.")
+            self.logger.info(f"Synced {len(synced)} commands.")
+        except Exception as e:
+            print(e)
+            self.logger.error(f"Error syncing commands: {e}")
+
+    async def load_cogs(self):
+        """Loads the cogs from the cogs folder."""
+        print("Loading cogs...")
+        cog_folders = ["grafana_discord_integration", "rcon_commands", "qc_status", "quantum_pterodactyl"]
+        self.logger.info(f"Loading cogs from {cog_folders}")
+        for cog_folder in cog_folders:
+            full_path = f"./cogs/{cog_folder}"
+            if os.path.exists(full_path):
+                for filename in os.listdir(full_path):
+                    if filename.endswith(".py") and not filename.startswith("__init__"):
+                        extension = f"cogs.{cog_folder}.{filename[:-3]}"
+                        try:
+                            await self.bot.load_extension(extension)
+                            self.logger.info(f"Loaded {extension} successfully.")
+                        except Exception as e:
+                            print(f"Failed to load {extension}, {e}")
+                            self.logger.error(f"Failed to load {extension}, {e}")
+            else:
+                print(f"Path {full_path} does not exist.")
+                self.logger.warning(f"Path {full_path} does not exist")
+        print("Finished loading cogs")
+        self.logger.info("Finished loading cogs")
+
+    def is_mod_or_admin():
+        async def predicate(ctx):
+            mod_role = discord.utils.get(ctx.guild.roles, name="Moderation Team")
+            owner_role = discord.utils.get(ctx.guild.roles, name="Owner")
+            admin_role = discord.utils.get(ctx.guild.roles, name="Admin")
+            return mod_role in ctx.author.roles or admin_role in ctx.author.roles or owner_role in ctx.author.roles
+        return commands.check(predicate)
+
+    # Admin command group
     admin = app_commands.Group(name="admin", description="Admin commands for the bot.")
     
     @admin.command(name="sync", description="Syncs the bot's commands with Discord.")
     @is_mod_or_admin()
     async def sync_commands(self, Interaction: discord.Interaction):
-        """ Syncs the bot's commands with Discord."""
         await Interaction.response.defer()
         try:
-            logger.info(f"Command sync initiated by {Interaction.user}...")
+            self.logger.info(f"Command sync initiated by {Interaction.user}...")
             synced = await self.bot.tree.sync()
             await Interaction.followup.send(f"Commands synced successfully! Synced {len(synced)} commands.")
-            logger.info(f"Synced {len(synced)} commands")
+            self.logger.info(f"Synced {len(synced)} commands.")
         except Exception as e:
-            logger.error(f"Sync Failed. An error occurred: {e}")
-            await Interaction.followup.send(f"Sync Failed. An error occurred: {e}")
-            
-    @admin.command(name="log", description="Gets or clears the bot's log file. Use 'get' or 'clear'.")
-    @is_mod_or_admin()
-    async def qc_log(Interaction: discord.Interaction, action: str = "get"):
-        log_file_path = "quantumly_confused_bot.log"
-        if action == "get":
-            try:
-                with open(log_file_path, "rb") as log_file:
-                    log_content = log_file.read()
-                    log_bytes = io.BytesIO(log_content)
-                    log_attachment = File(fp=log_bytes, filename="quantumly_confused_bot.log")
-                    await Interaction.response.send_message(file=log_attachment)
-                    logger.info(f"The log file was retrieved by {Interaction.user}.")
-            except FileNotFoundError:
-                await Interaction.response.send_message(
-                    "The log file could not be found.", ephemeral=True
-                )
-                logger.info("The log file could not be found.")
+            self.logger.error(f"Sync failed: {e}")
+            await Interaction.followup.send(f"Sync failed: {e}")
 
-        elif action == "clear":
-            try:
-                open(log_file_path, "w").close()
-                await Interaction.response.send_message(
-                    f"The log file has been cleared by {Interaction.user}.", ephemeral=True
-                )
-                logger.info(f"The log file has been cleared by {Interaction.user}.")
-            except Exception as e:
-                await Interaction.response.send_message(
-                    f"An error occurred: {str(e)}", ephemeral=True
-                )
-                logger.error(
-                    f"An error occurred while trying to clear the log file: {str(e)}"
-                )
-        else:
-            await Interaction.response.send_message(
-                "Invalid action. Use 'get' or 'clear'.", ephemeral=True
-            )
-            logger.warning(
-                f"Invalid action entered by {Interaction.user} for /admin log command."
-            )
-
-            
-    cog = app_commands.Group(name="cog", description="Manage Bot Cogs.")
+    # Cog command group
+    cog = app_commands.Group(name="cog", description="Manage bot cogs.")
+    
     @cog.command(name="load", description="Loads a cog.")
     async def load_cog(self, Interaction: discord.Interaction, cog_name: str):
-        """ Loads a cog."""
         await Interaction.response.defer()
         try:
-            extension = f"cogs.{cog_name}"
-            await bot.load_extension(extension)
-            logger.info(f"Loaded {extension}")
-            await Interaction.followup.send(f"Loaded {extension}")
+            await self.bot.load_extension(cog_name)
+            self.logger.info(f"Loaded {cog_name}")
+            await Interaction.followup.send(f"Loaded {cog_name}")
         except Exception as e:
-            logger.info(f"Failed to load {cog_name}")
-            await Interaction.followup.send(f"Failed to load {cog_name}")
-            
+            self.logger.error(f"Failed to load {cog_name}: {e}")
+            await Interaction.followup.send(f"Failed to load {cog_name}: {e}")
+
     @cog.command(name="unload", description="Unloads a cog.")
     async def unload_cog(self, Interaction: discord.Interaction, cog_name: str):
-        """ Unloads a cog."""
         await Interaction.response.defer()
         try:
-            extension = f"cogs.{cog_name}"
-            await bot.unload_extension(extension)
-            await Interaction.followup.send(f"Unloaded {extension}")
+            await self.bot.unload_extension(cog_name)
+            self.logger.info(f"Unloaded {cog_name}")
+            await Interaction.followup.send(f"Unloaded {cog_name}")
         except Exception as e:
-            print(f"Failed to unload {cog_name}")
-            print(e)
-            await Interaction.followup.send(f"Failed to unload {cog_name}")
-            
-    @cog.command(name="reload", description="Reloads a cog.") 
+            self.logger.error(f"Failed to unload {cog_name}: {e}")
+            await Interaction.followup.send(f"Failed to unload {cog_name}: {e}")
+
+    @cog.command(name="reload", description="Reloads a cog.")
     async def reload_cog(self, Interaction: discord.Interaction, cog_name: str):
-        """ Reloads a cog."""
         await Interaction.response.defer()
         try:
-            extension = f"cogs.{cog_name}"
-            await bot.reload_extension(extension)
-            logger.info(f"Reloaded {extension}")
-            await Interaction.followup.send(f"Reloaded {extension}")
+            await self.bot.reload_extension(cog_name)
+            self.logger.info(f"Reloaded {cog_name}")
+            await Interaction.followup.send(f"Reloaded {cog_name}")
         except Exception as e:
-            print(f"Failed to reload {cog_name}")
-            logger.error(f"Failed to reload {cog_name}")
-            await Interaction.followup.send(f"Failed to reload {cog_name}")
-            
+            self.logger.error(f"Failed to reload {cog_name}: {e}")
+            await Interaction.followup.send(f"Failed to reload {cog_name}: {e}")
+
     @cog.command(name="loaded", description="Shows currently loaded extensions.")
     async def show_loaded_extensions(self, Interaction: discord.Interaction):
-        """ Shows currently loaded extensions."""
-        loaded_extensions = list(bot.extensions)
+        loaded_extensions = list(self.bot.extensions)
         await Interaction.response.send_message(f"Currently loaded extensions: {loaded_extensions}")
-        logger("Sent loaded extensions")
+        self.logger.info("Displayed loaded extensions")
 
-#* Bot setup steps and start
+# Bot initialization and startup
 async def main():
-    """ Main function for the bot."""
-    await load_cogs()
-    await bot.add_cog(QCAdmin(bot))
+    bot = commands.Bot(command_prefix="/", intents=intents)
+    qc_admin = QCAdmin(bot)
+    bot.logger = qc_admin.logger
+    await bot.add_cog(qc_admin)
+    await qc_admin.load_cogs()
     await bot.start(os.getenv('DISCORD_API_TOKEN'))
 
 if __name__ == '__main__':
