@@ -93,3 +93,24 @@ mcrcon==0.7.0
 python-dotenv==1.0.0
 typing_extensions==4.8.0
 async-timeout==4.0.3
+```
+### Environment Configuration
+
+The bot requires several environment variables for secure access to APIs and sensitive data:
+
+- **Discord Bot Token**: `DISCORD_API_TOKEN`
+- **Grafana API**:
+  - `GRAFANA_API_TOKEN`
+  - `GRAFANA_PANEL_SOURCE`
+  - `GRAFANA_UID`
+  - `GRAFANA_URL`
+- **Pterodactyl API**:
+  - `PTERODACTYL_API_KEY`
+  - `PTERODACTYL_PANEL_URL`
+  - `PTERODACTYL_SERVER_ID`
+- **Minecraft RCON**:
+  - `RCON_HOST`
+  - `RCON_PASSWORD`
+  - `RCON_PORT`
+
+These variables should be stored in a `.env` file in the bot’s root directory for easy management and security.
