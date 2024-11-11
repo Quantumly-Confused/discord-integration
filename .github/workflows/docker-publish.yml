@@ -26,10 +26,10 @@ jobs:
     - name: Build Docker image
       id: build
       run: |
-        docker build -t ghcr.io/Quantumly-Confused/qcadmin-discord-bot:latest .
+        docker build -t ghcr.io/quantumlyconfused/qcadmin-discord-bot:latest .
 
     # Only push the image if the build step is successful
     - name: Push Docker image
       if: ${{ success() }}
       run: |
-        docker push ghcr.io/Quantumly-Confused/qcadmin-discord-bot:latest
+        docker push ghcr.io/quantumlyconfused/qcadmin-discord-bot:latest
