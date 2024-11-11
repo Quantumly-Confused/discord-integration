@@ -113,4 +113,4 @@ The bot requires several environment variables for secure access to APIs and sen
   - `RCON_PASSWORD`
   - `RCON_PORT`
 
-These variables should be stored in a `.env` file in the bot’s root directory for easy management and security.
+These variables should be provided in the Docker run or other environment where python-dotenv is supported when starting main.py. 
