@@ -148,7 +148,6 @@ async def main():
     qc_admin = QCAdmin(bot)
     bot.logger = qc_admin.logger
     await bot.add_cog(qc_admin)
-    await qc_admin.load_cogs()
     await bot.start(os.getenv('DISCORD_API_TOKEN'))
 
 if __name__ == '__main__':

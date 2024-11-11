@@ -89,7 +89,7 @@ class Grafana_Discord_Integration_Cog(commands.Cog):
         """ Loads the panel names and ids from the json modal and stores them in a dictionary
         :return: None
         """
-        jsonconfig_path = 'grafana_dash_json_modal.json'
+        jsonconfig_path = '.\grafana_dash_json_modal.json'
         with open(jsonconfig_path, 'r') as file:
             json_modal = json.load(file)
             self.extract_panel_config(json_modal, self.panels)
