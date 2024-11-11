@@ -88,7 +88,7 @@ discord==2.3.2
 discord-py-interactions==5.10.0
 discord-typings==0.7.0
 discord.py==2.3.2
-aiohttp==3.9.0
+aiohttp==3.10.10
 mcrcon==0.7.0
 python-dotenv==1.0.0
 typing_extensions==4.8.0
