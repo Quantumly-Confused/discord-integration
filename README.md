@@ -1,6 +1,29 @@
-# discord-integration - Quantum Craft Bot Documentation
+# QCAdmin Discord Bot Documentation
 
-Quantum Craft is a Discord bot built for managing and interacting with various services on the Quantumly Confused gaming Discord server. This bot is structured as a cog loader, supporting multiple cogs that integrate functionalities for Discord server management, Grafana, Pterodactyl server control, and Minecraft RCON commands.
+Quantum Craft is a Discord bot built for managing and interacting with various services on the Quantumly Confused gaming Discord server. This bot is structured as a cog loader, supporting multiple cogs that integrate functionalities for Discord server management, Grafana, Pterodactyl server control, and Minecraft RCON commands. 
+
+By default - no cogs are loaded, allowing for modular deployment and configuration per cog.
+
+### Environment Configuration
+
+The bot requires several environment variables. If you are not loading the specific function these variables are not required to be supplied:
+
+- **Discord Bot Token**: `DISCORD_API_TOKEN` **REQUIRED AS A BASE**
+- **Grafana**:
+  - `GRAFANA_API_TOKEN`
+  - `GRAFANA_PANEL_SOURCE`
+  - `GRAFANA_UID`
+  - `GRAFANA_URL`
+- **Pterodactyl**:
+  - `PTERODACTYL_API_KEY`
+  - `PTERODACTYL_PANEL_URL`
+  - `PTERODACTYL_SERVER_ID`
+- **Minecraft**:
+  - `RCON_HOST`
+  - `RCON_PASSWORD`
+  - `RCON_PORT`
+
+These variables should be provided in the Docker run or other environment where python-dotenv is supported when starting main.py. 
 
 ## Table of Contents
 
@@ -94,23 +117,3 @@ python-dotenv==1.0.0
 typing_extensions==4.8.0
 async-timeout==4.0.3
 ```
-### Environment Configuration
-
-The bot requires several environment variables for secure access to APIs and sensitive data:
-
-- **Discord Bot Token**: `DISCORD_API_TOKEN`
-- **Grafana API**:
-  - `GRAFANA_API_TOKEN`
-  - `GRAFANA_PANEL_SOURCE`
-  - `GRAFANA_UID`
-  - `GRAFANA_URL`
-- **Pterodactyl API**:
-  - `PTERODACTYL_API_KEY`
-  - `PTERODACTYL_PANEL_URL`
-  - `PTERODACTYL_SERVER_ID`
-- **Minecraft RCON**:
-  - `RCON_HOST`
-  - `RCON_PASSWORD`
-  - `RCON_PORT`
-
-These variables should be provided in the Docker run or other environment where python-dotenv is supported when starting main.py. 
