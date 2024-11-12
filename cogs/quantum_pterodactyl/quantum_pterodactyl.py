@@ -32,7 +32,7 @@ class QuantumPterodactyl(commands.Cog):
     @app_commands.command(
         name="commands", description="List all QuantumPterodactyl commands"
     )
-    async def list_commands(self, interaction: discord.Interaction):
+    async def list_commands(self, Interaction: discord.Interaction):
         """QuantumPterodactyl command list:"""
         commands_list = [
             "/server list - List all PteroDactyl game servers",
@@ -44,7 +44,7 @@ class QuantumPterodactyl(commands.Cog):
             "/commands - Lists all available QuantumPterodactyl commands",
         ]
         commands_message = "\n".join(commands_list)
-        await interaction.response.send_message(
+        await Interaction.response.send_message(
             f"**QuantumPterodactyl Commands:**\n{commands_message}"
         )
         embed = discord.Embed(
@@ -55,8 +55,8 @@ class QuantumPterodactyl(commands.Cog):
         for command in commands_list:
             name, description = command.split(" - ")
             embed.add_field(name=name, value=description, inline=False)
-
-        await interaction.response.send_message(embed=embed)
+        
+        await Interaction.response.send_message(embed=embed)
 
     async def _send_power_signal(self, signal: str, server_id: str) -> tuple[bool, str]:
         """
@@ -67,6 +67,7 @@ class QuantumPterodactyl(commands.Cog):
             server_id (str): The server ID to target for the power signal
         """
         url = f"{self.panel_url}/api/client/servers/{server_id}/power"
+        print(f'Sending {signal} signal to server {server_id}...') #! Debug Print
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -78,6 +79,7 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=data) as response:
                     if response.status == 204:  # Success with no content
+                        print(f'Successfully sent {signal} signal to server {server_id}') #! Debug Print
                         self.logger.info(
                             f"Successfully sent {signal} signal to server {server_id}"
                         )
@@ -87,12 +89,14 @@ class QuantumPterodactyl(commands.Cog):
                         )
                     else:
                         error_text = await response.text()
+                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
                         return (
                             False,
                             f"Failed to send {signal} signal. Status: {response.status}",
                         )
         except Exception as e:
+            print(f'Error sending power signal to server {server_id}: {str(e)}') #! Debug Print
             self.logger.error(
                 f"Error sending power signal to server {server_id}: {str(e)}"
             )
@@ -102,83 +106,92 @@ class QuantumPterodactyl(commands.Cog):
 
     @power.command(name="start")
     @app_commands.checks.has_permissions(administrator=True)
-    async def start_server(self, interaction: discord.Interaction, server_id: str):
+    async def start_server(self, Interaction: discord.Interaction, server_id: str):
         """Starts the specified game server"""
-        await interaction.response.defer()  # Discord: always defer the response when using interactions that may take longer than 3 seconds to respond
+        await Interaction.response.defer()  # Discord: always defer the response when using Interactions that may take longer than 3 seconds to respond
 
         success, message = await self._send_power_signal("start", server_id)
 
         if success:
-            await interaction.followup.send(f"🟢 Server `{server_id}` is starting up...")
+            await Interaction.followup.send(f"🟢 Server `{server_id}` is starting up...")
+            print(f'Successfully started server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is starting up")
         else:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"❌ Failed to start server `{server_id}`: {message}"
             )
+            print(f'Failed to start server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to start server `{server_id}`: {message}")
 
     @power.command(name="stop")
     @app_commands.checks.has_permissions(administrator=True)
-    async def stop_server(self, interaction: discord.Interaction, server_id: str):
+    async def stop_server(self, Interaction: discord.Interaction, server_id: str):
         """Stops the specified game server gracefully"""
-        await interaction.response.defer()
+        await Interaction.response.defer()
 
         success, message = await self._send_power_signal("stop", server_id)
 
         if success:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"🔴 Server `{server_id}` is shutting down..."
             )
+            print(f'Successfully stopped server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is shutting down")
         else:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"❌ Failed to stop server `{server_id}`: {message}"
             )
+            print(f'Failed to stop server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to stop server `{server_id}`: {message}")
 
     @power.command(name="restart")
     @app_commands.checks.has_permissions(administrator=True)
-    async def restart_server(self, interaction: discord.Interaction, server_id: str):
+    async def restart_server(self, Interaction: discord.Interaction, server_id: str):
         """Restarts the specified game server"""
-        await interaction.response.defer()
+        await Interaction.response.defer()
 
         success, message = await self._send_power_signal("restart", server_id)
 
         if success:
-            await interaction.followup.send(f"🔄 Server `{server_id}` is restarting...")
+            await Interaction.followup.send(f"🔄 Server `{server_id}` is restarting...")
+            print(f'Successfully restarted server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is restarting")
         else:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"❌ Failed to restart server `{server_id}`: {message}"
             )
+            print(f'Failed to restart server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to restart server `{server_id}`: {message}")
 
     @power.command(name="kill")
     @app_commands.checks.has_permissions(administrator=True)
-    async def kill_server(self, interaction: discord.Interaction, server_id: str):
+    async def kill_server(self, Interaction: discord.Interaction, server_id: str):
         """Forcefully stops the specified game server"""
-        await interaction.response.defer()
+        await Interaction.response.defer()
 
         success, message = await self._send_power_signal("kill", server_id)
 
         if success:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"⚠️ Server `{server_id}` has been forcefully stopped!"
             )
+            print(f'Successfully killed server {server_id}') #! Debug Print
             self.logger.warning(f"Server `{server_id}` has been forcefully stopped")
         else:
-            await interaction.followup.send(
+            await Interaction.followup.send(
                 f"❌ Failed to kill server `{server_id}`: {message}"
             )
+            print(f'Failed to kill server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to kill server `{server_id}`: {message}")
 
     @power.command(name="state")
     @app_commands.checks.has_permissions(administrator=True)
-    async def power_state(self, interaction: discord.Interaction, server_id: str):
+    async def power_state(self, Interaction: discord.Interaction, server_id: str):
         """Fetches and displays the current power state of the specified server"""
-        await interaction.response.defer()
+        await Interaction.response.defer()
 
         url = f"{self.panel_url}/api/client/servers/{server_id}/resources"
+        print(f'Fetching power state for server {server_id}...') #! Debug Print
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json",
@@ -189,41 +202,46 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
+                        print(f'Successfully fetched power state for server {server_id}') #! Debug Print
                         data = await response.json()
                         power_state = data.get("attributes", {}).get(
                             "current_state", "Unknown"
                         )
 
                         # Send the power state as a message
-                        await interaction.followup.send(
+                        await Interaction.followup.send(
                             f"The current power state of server `{server_id}` is: `{power_state}`"
                         )
+                        print(f'Power state fetched for server {server_id}: {power_state}') #! Debug Print
                         self.logger.info(
                             f"Power state fetched for server `{server_id}`: {power_state}"
                         )
                     else:
                         error_text = await response.text()
+                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        await interaction.followup.send(
+                        await Interaction.followup.send(
                             f"❌ Failed to fetch power state. Status: {response.status}"
                         )
         except Exception as e:
+            print(f'Error fetching power state for server {server_id}: {str(e)}') #! Debug Print
             self.logger.error(
                 f"Error fetching power state for server `{server_id}`: {str(e)}"
             )
-            await interaction.followup.send(f"❌ Error occurred: {str(e)}")
+            await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
     server = app_commands.Group(name="server", description="Server information.")
 
     @server.command(name="list", description="List all game servers")
     @app_commands.checks.has_permissions(administrator=True, manage_guild=True)
-    async def list_servers(self, interaction: discord.Interaction):
+    async def list_servers(self, Interaction: discord.Interaction):
         """
         Lists all servers associated with the Pterodactyl panel.
         """
-        await interaction.response.defer()
+        await Interaction.response.defer()
 
         url = f"{self.panel_url}/api/client/servers"
+        print(f'Fetching server list from {url}') #! Debug Print
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json",
@@ -233,26 +251,30 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
+                        print(f'Successfully fetched server list') #! Debug Print
                         data = await response.json()
                         server_list = [
                             f"{server['attributes']['name']} (ID: {server['attributes']['id']})"
                             for server in data["data"]
                         ]
                         formatted_list = "\n".join(server_list)
-                        await interaction.followup.send(
+                        await Interaction.followup.send(
                             f"**Servers:**\n{formatted_list}"
                         )
                     else:
                         error_text = await response.text()
+                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        await interaction.followup.send(
+                        await Interaction.followup.send(
                             f"❌ Failed to list servers. Status: {response.status}"
                         )
         except Exception as e:
+            print(f'Error listing servers: {str(e)}')
             self.logger.error(f"Error listing servers: {str(e)}")
-            await interaction.followup.send(f"❌ Error occurred: {str(e)}")
+            await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
 
 async def setup(bot):
     await bot.add_cog(QuantumPterodactyl(bot))
     bot.logger.info("Cog loaded: QuantumPterodactyl v0.1")
+    print("Cog loaded: QuantumPterodactyl v0.1") #! Debug Print
