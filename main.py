@@ -24,6 +24,7 @@ class QCAdmin(commands.Cog):
         self.bot = bot
         self.logger = self.setup_logger()
         print("QCAdmin initialized")
+        self.logger.info("QCAdmin initialized")
 
     def setup_logger(self):
         """Sets up logging for the bot."""
@@ -45,14 +46,7 @@ class QCAdmin(commands.Cog):
         print(f"Discord.py API version: {discord.__version__}")
         print(f"Bot ID: {self.bot.user.id}")
         self.logger.info(f"Logged in as {self.bot.user.name} Discord.py API version: {discord.__version__} Bot ID: {self.bot.user.id}")
-        try:
-            synced = await self.bot.tree.sync()
-            print(f"Synced {len(synced)} commands.")
-            self.logger.info(f"Synced {len(synced)} commands.")
-        except Exception as e:
-            print(e)
-            self.logger.error(f"Error syncing commands: {e}")
-
+        
     async def load_cogs(self):
         """Loads the cogs from the cogs folder."""
         print("Loading cogs...")
@@ -141,14 +135,27 @@ class QCAdmin(commands.Cog):
         loaded_extensions = list(self.bot.extensions)
         await Interaction.response.send_message(f"Currently loaded extensions: {loaded_extensions}")
         self.logger.info("Displayed loaded extensions")
+        
+    async def sync_commands(self):
+        """Syncs the bot's commands with Discord on startup."""
+        print("Bot Startup Command Sync initiated...")
+        self.logger.info("Bot Startup Command Sync initiated...")
+        try:
+            synced = await self.bot.tree.sync()
+            print(f"Command Sync Completed: Synced {len(synced)} commands.")
+            self.logger.info(f"Command Sync Completed: Synced {len(synced)} commands.")
+        except Exception as e:
+            print(e)
+            self.logger.error(f"Error syncing commands: {e}")
 
 # Bot initialization and startup
 async def main():
     bot = commands.Bot(command_prefix="/", intents=intents)
     qc_admin = QCAdmin(bot)
     bot.logger = qc_admin.logger
-    await bot.add_cog(qc_admin)
     await bot.start(os.getenv('DISCORD_API_TOKEN'))
+    await bot.add_cog(qc_admin)
+    await qc_admin.sync_commands()
 
 if __name__ == '__main__':
     asyncio.run(main())
