@@ -35,6 +35,7 @@ class QuantumPterodactyl(commands.Cog):
     async def list_commands(self, interaction: discord.Interaction):
         """QuantumPterodactyl command list:"""
         commands_list = [
+            "/server list - List all PteroDactyl game servers",
             "/power state <serverid:str> - Get the current state of the game server",
             "/power start <serverid:str> - Starts the game server",
             "/power stop <serverid:str> - Stops the game server gracefully",
