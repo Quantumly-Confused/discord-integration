@@ -49,7 +49,7 @@ class QuantumPterodactyl(commands.Cog):
         embed = discord.Embed(
             title="QuantumPterodactyl Commands",
             description="List of all available commands",
-            color=discord.Color.blue(),
+            color=discord.Color.purple(),
         )
         for command in commands_list:
             name, description = command.split(" - ")
