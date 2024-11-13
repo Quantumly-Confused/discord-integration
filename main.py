@@ -162,8 +162,8 @@ async def main():
     bot = commands.Bot(command_prefix="/", intents=intents)
     qc_admin = QCAdmin(bot)
     bot.logger = qc_admin.logger
-    await bot.start(os.getenv('DISCORD_API_TOKEN'))
     await bot.add_cog(qc_admin)
+    await bot.start(os.getenv('DISCORD_API_TOKEN'))
     await qc_admin.sync_commands()
 
 if __name__ == '__main__':
