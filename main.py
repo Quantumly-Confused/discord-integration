@@ -38,6 +38,14 @@ class QCAdmin(commands.Cog):
         logger.addHandler(console_handler)
         print(f"Log file created at: {handler.baseFilename}")
         return logger
+    
+    def add_logger_memory_handler(self):
+        """Adds a memory handler to capture buffered log data."""
+        # hold logs in memory and buffer up to 100 log records
+        memory_handler = logging.handlers.MemoryHandler(capacity=100, target=None)
+        memory_handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
+        self.logger.addHandler(memory_handler)
+        self.memory_handler = memory_handler
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -46,29 +54,6 @@ class QCAdmin(commands.Cog):
         print(f"Discord.py API version: {discord.__version__}")
         print(f"Bot ID: {self.bot.user.id}")
         self.logger.info(f"Logged in as {self.bot.user.name} Discord.py API version: {discord.__version__} Bot ID: {self.bot.user.id}")
-        
-    async def load_cogs(self):
-        """Loads the cogs from the cogs folder."""
-        print("Loading cogs...")
-        cog_folders = ["grafana_discord_integration", "rcon_commands", "qc_status", "quantum_pterodactyl"]
-        self.logger.info(f"Loading cogs from {cog_folders}")
-        for cog_folder in cog_folders:
-            full_path = f"./cogs/{cog_folder}"
-            if os.path.exists(full_path):
-                for filename in os.listdir(full_path):
-                    if filename.endswith(".py") and not filename.startswith("__init__"):
-                        extension = f"cogs.{cog_folder}.{filename[:-3]}"
-                        try:
-                            await self.bot.load_extension(extension)
-                            self.logger.info(f"Loaded {extension} successfully.")
-                        except Exception as e:
-                            print(f"Failed to load {extension}, {e}")
-                            self.logger.error(f"Failed to load {extension}, {e}")
-            else:
-                print(f"Path {full_path} does not exist.")
-                self.logger.warning(f"Path {full_path} does not exist")
-        print("Finished loading cogs")
-        self.logger.info("Finished loading cogs")
 
     def is_mod_or_admin():
         async def predicate(ctx):
@@ -84,6 +69,7 @@ class QCAdmin(commands.Cog):
     @admin.command(name="sync", description="Syncs the bot's commands with Discord.")
     @is_mod_or_admin()
     async def sync_commands(self, Interaction: discord.Interaction):
+        """ Syncs the bot's commands with Discord API."""
         await Interaction.response.defer()
         try:
             self.logger.info(f"Command sync initiated by {Interaction.user}...")
@@ -93,6 +79,29 @@ class QCAdmin(commands.Cog):
         except Exception as e:
             self.logger.error(f"Sync failed: {e}")
             await Interaction.followup.send(f"Sync failed: {e}")
+            
+    @admin.command(name="logbuffer", description="Command to capture logs from the log memory buffer.")
+    async def memory_logbuffer(self, ctx):
+        """Command to capture logs from the log memory buffer."""
+        # Flush memory handler to the buffer 
+        self.memory_handler.flush()  
+
+        # Gather all log records from the buffer
+        log_records = [self.memory_handler.format(record) for record in self.memory_handler.buffer]
+
+        if not log_records:
+            await ctx.send("No recent log entries found.")
+            return
+
+        # Combine log records but keep it under Discord's 2000 character limit
+        log_data = "\n".join(log_records)
+        if len(log_data) > 1900:
+            log_data = log_data[-1900:]  # Trim to the last 1900 characters
+
+        await ctx.send(f"```{log_data}```")
+
+        # Clear method to clear the buffer
+        self.memory_handler.buffer.clear()
 
     # Cog command group
     cog = app_commands.Group(name="cog", description="Manage bot cogs.")
@@ -153,8 +162,8 @@ async def main():
     bot = commands.Bot(command_prefix="/", intents=intents)
     qc_admin = QCAdmin(bot)
     bot.logger = qc_admin.logger
-    await bot.add_cog(qc_admin)
     await bot.start(os.getenv('DISCORD_API_TOKEN'))
+    await bot.add_cog(qc_admin)
     await qc_admin.sync_commands()
 
 if __name__ == '__main__':
