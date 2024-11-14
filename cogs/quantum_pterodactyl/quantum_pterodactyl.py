@@ -256,7 +256,7 @@ class QuantumPterodactyl(commands.Cog):
                         print(f'Successfully fetched server list') #! Debug Print
                         data = await response.json()
                         server_list = [
-                            f"{server['attributes']['name']} (ID: {server['attributes']['id']})"
+                            f"{server['attributes']['name']} (ID: {server['attributes']['identifier']})"
                             for server in data["data"]
                         ]
                         formatted_list = "\n".join(server_list)
