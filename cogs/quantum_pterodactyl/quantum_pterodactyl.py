@@ -66,7 +66,7 @@ class QuantumPterodactyl(commands.Cog):
             signal (str): One of 'start', 'stop', 'restart', 'kill'
             server_id (str): The server ID to target for the power signal
         """
-        url = f"{self.panel_url}api/client/servers/{server_id}/power"
+        url = f"{self.panel_url}/api/client/servers/{server_id}/power"
         print(f'Sending {signal} signal to server {server_id}...') #! Debug Print
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -190,7 +190,7 @@ class QuantumPterodactyl(commands.Cog):
         """Fetches and displays the current power state of the specified server"""
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}api/client/servers/{server_id}/resources"
+        url = f"{self.panel_url}/api/client/servers/{server_id}/resources"
         print(f'url is {url}') #! Debug Print
         print(f'Fetching power state for server {server_id}...') #! Debug Print
         headers = {
@@ -241,7 +241,7 @@ class QuantumPterodactyl(commands.Cog):
         """
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}api/client/servers"
+        url = f"{self.panel_url}/api/client"
         print(f'url is {url}') #! Debug Print
         print(f'Fetching server list from {url}') #! Debug Print
         headers = {
