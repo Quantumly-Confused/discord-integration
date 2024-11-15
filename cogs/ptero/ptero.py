@@ -204,10 +204,6 @@ class QuantumPterodactyl(commands.Cog):
                         embed = discord.Embed(title='QC - Server List',colour=436557,)
                         embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
-                            #server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
-                            embed.add_field(name=f"{server['attributes']['name']}", value=f"{server['attributes']['identifier']}", inline=False)
-                        '''
-                            time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
 
@@ -230,9 +226,9 @@ class QuantumPterodactyl(commands.Cog):
                             except Exception as e:
                                 self.logger.error(f"Error fetching list power state for server `{server_id}`: {str(e)}")
                                 #await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
-
-                        server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
-                        '''
+                            embed.add_field(name=f"{server['attributes']['name']}", value=f"{server['attributes']['identifier']} - {power_state}", inline=False)
+                        #server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
+                        
                         await Interaction.followup.send(embed=embed)
                     else:
                         error_text = await response.text()
