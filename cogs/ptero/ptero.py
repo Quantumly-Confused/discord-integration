@@ -240,6 +240,7 @@ class QuantumPterodactyl(commands.Cog):
                         server_list = []
                         data = await response.json()
                         for server in data["data"]:
+                            time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
 
