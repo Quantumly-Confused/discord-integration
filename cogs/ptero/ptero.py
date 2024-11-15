@@ -99,7 +99,7 @@ class QuantumPterodactyl(commands.Cog):
             )
             return False, f"Error occurred: {str(e)}"
 
-    power = app_commands.Group(name="pt power", description="Control server power state.")
+    power = app_commands.Group(name="pt_power", description="Control server power state.")
 
     @power.command(name="start")
     @app_commands.checks.has_permissions(administrator=True)
@@ -216,7 +216,7 @@ class QuantumPterodactyl(commands.Cog):
             )
             await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
-    server = app_commands.Group(name="pt list", description="Server information.")
+    server = app_commands.Group(name="pt_list", description="Server information.")
 
     @server.command(name="pt_list", description="List all game servers")
     @app_commands.checks.has_permissions(administrator=True, manage_guild=True)
