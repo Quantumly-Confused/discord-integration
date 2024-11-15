@@ -201,7 +201,7 @@ class QuantumPterodactyl(commands.Cog):
                     if response.status == 200:
                         server_list = []
                         data = await response.json()
-                        embed = discord.Embed(title='QC - Server List',description=f"{formatted_list}",colour=436557,)
+                        embed = discord.Embed(title='QC - Server List',colour=436557,)
                         embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
                             #server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
