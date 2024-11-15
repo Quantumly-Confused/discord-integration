@@ -231,9 +231,11 @@ class QuantumPterodactyl(commands.Cog):
 
                         server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         '''
-                        await Interaction.followup.send(f"-----Servers-----\n{server_list}")
+                        formatted_list = "\n".join(server_list)
+                        await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
                     else:
                         error_text = await response.text()
+
                         self.logger.error(f"Pterodactyl API error: {error_text}")
                         await Interaction.followup.send(f"❌ Failed to list servers. Status: {response.status}")
         except Exception as e:
