@@ -151,7 +151,7 @@ class QuantumPterodactyl(commands.Cog):
         """Fetches and displays the current power state of the specified server"""
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}/api/application/servers/{server_id}"
+        url = f"{self.panel_url}/api/application/servers/external/{server_id}"
         self.logger.info(f"Fetching power state from {url}")
 
         headers = {
@@ -204,7 +204,7 @@ class QuantumPterodactyl(commands.Cog):
                         embed = discord.Embed(title='QC - Server List',colour=436557,)
                         embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
-                            url = f"{self.panel_url}/api/application/servers/{server['attributes']['identifier']}"
+                            url = f"{self.panel_url}/api/application/servers/external/{server['attributes']['identifier']}"
                             self.logger.info(f"Fetching list power state from {url}")
 
                             headers = {
