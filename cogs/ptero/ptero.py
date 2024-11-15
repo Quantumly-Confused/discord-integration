@@ -188,7 +188,7 @@ class QuantumPterodactyl(commands.Cog):
         """
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}/api/applications/servers"
+        url = f"{self.panel_url}/api/application/servers"
         self.logger.info(f"Fetching server list from {url}")
         headers = {
             "Authorization": f"Bearer {self.api_key}",
