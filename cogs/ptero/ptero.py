@@ -225,7 +225,6 @@ class QuantumPterodactyl(commands.Cog):
                                             #await Interaction.followup.send(f"❌ Failed to fetch power state. Status: {response.status}")
                             except Exception as e:
                                 self.logger.error(f"Error fetching list power state for server `{server_id}`: {str(e)}")
-                                #await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
                             embed.add_field(name=f"{server['attributes']['name']}", value=f"{server['attributes']['identifier']} - {power_state}", inline=False)
                         #server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         
