@@ -23,7 +23,6 @@ class QuantumPterodactyl(commands.Cog):
         load_dotenv()
         self.api_key = os.getenv("PTERODACTYL_API_KEY")
         self.panel_url = os.getenv("PTERODACTYL_PANEL_URL")
-        self.server_id = os.getenv("PTERODACTYL_SERVER_ID")
 
         if not all([self.api_key, self.panel_url, self.server_id]):
             self.logger.error("Missing required Pterodactyl dotenv variables")
