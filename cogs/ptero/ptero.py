@@ -6,7 +6,6 @@
 # Version:
 #    0.1
 
-
 import discord
 from discord import app_commands
 from discord.ext import commands
@@ -15,7 +14,6 @@ import os
 from dotenv import load_dotenv
 import logging
 import time
-
 
 class QuantumPterodactyl(commands.Cog):
     def __init__(self, bot):
@@ -31,9 +29,7 @@ class QuantumPterodactyl(commands.Cog):
             self.logger.error("Missing required Pterodactyl dotenv variables")
             raise ValueError("Missing required Pterodactyl dotenv variables")
 
-    @app_commands.command(
-        name="pt_commands", description="List all QuantumPterodactyl commands"
-    )
+    @app_commands.command(name="pt_commands", description="List all QuantumPterodactyl commands")
     async def list_commands(self, Interaction: discord.Interaction):
         """QuantumPterodactyl command list:"""
         commands_list = [
@@ -46,9 +42,7 @@ class QuantumPterodactyl(commands.Cog):
             "/pt_commands - Lists all available QuantumPterodactyl commands",
         ]
         commands_message = "\n".join(commands_list)
-        await Interaction.response.send_message(
-            f"**QuantumPterodactyl Commands:**\n{commands_message}"
-        )
+        await Interaction.response.send_message(f"**QuantumPterodactyl Commands:**\n{commands_message}")
         embed = discord.Embed(
             title="QuantumPterodactyl Commands",
             description="List of all available commands",
@@ -80,24 +74,14 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=data) as response:
                     if response.status == 204:  # Success with no content
-                        self.logger.info(
-                            f"Successfully sent {signal} signal to server {server_id}"
-                        )
-                        return (
-                            True,
-                            f"Successfully sent {signal} signal to server {server_id}",
-                        )
+                        self.logger.info(f"Successfully sent {signal} signal to server {server_id}")
+                        return (True,f"Successfully sent {signal} signal to server {server_id}",)
                     else:
                         error_text = await response.text()
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        return (
-                            False,
-                            f"Failed to send {signal} signal. Status: {response.status}",
-                        )
+                        return (False,f"Failed to send {signal} signal. Status: {response.status}",)
         except Exception as e:
-            self.logger.error(
-                f"Error sending power signal to server {server_id}: {str(e)}"
-            )
+            self.logger.error(f"Error sending power signal to server {server_id}: {str(e)}")
             return False, f"Error occurred: {str(e)}"
 
     power = app_commands.Group(name="pt_power", description="Control server power state.")
@@ -114,9 +98,7 @@ class QuantumPterodactyl(commands.Cog):
             await Interaction.followup.send(f"🟢 Server `{server_id}` is starting up...")
             self.logger.info(f"Server `{server_id}` is starting up")
         else:
-            await Interaction.followup.send(
-                f"❌ Failed to start server `{server_id}`: {message}"
-            )
+            await Interaction.followup.send(f"❌ Failed to start server `{server_id}`: {message}")
             self.logger.error(f"Failed to start server `{server_id}`: {message}")
 
     @power.command(name="stop")
@@ -128,14 +110,10 @@ class QuantumPterodactyl(commands.Cog):
         success, message = await self._send_power_signal("stop", server_id)
 
         if success:
-            await Interaction.followup.send(
-                f"🔴 Server `{server_id}` is shutting down..."
-            )
+            await Interaction.followup.send(f"🔴 Server `{server_id}` is shutting down...")
             self.logger.info(f"Server `{server_id}` is shutting down")
         else:
-            await Interaction.followup.send(
-                f"❌ Failed to stop server `{server_id}`: {message}"
-            )
+            await Interaction.followup.send(f"❌ Failed to stop server `{server_id}`: {message}")
             self.logger.error(f"Failed to stop server `{server_id}`: {message}")
 
     @power.command(name="restart")
@@ -150,9 +128,7 @@ class QuantumPterodactyl(commands.Cog):
             await Interaction.followup.send(f"🔄 Server `{server_id}` is restarting...")
             self.logger.info(f"Server `{server_id}` is restarting")
         else:
-            await Interaction.followup.send(
-                f"❌ Failed to restart server `{server_id}`: {message}"
-            )
+            await Interaction.followup.send(f"❌ Failed to restart server `{server_id}`: {message}")
             self.logger.error(f"Failed to restart server `{server_id}`: {message}")
 
     @power.command(name="kill")
@@ -164,17 +140,13 @@ class QuantumPterodactyl(commands.Cog):
         success, message = await self._send_power_signal("kill", server_id)
 
         if success:
-            await Interaction.followup.send(
-                f"⚠️ Server `{server_id}` has been forcefully stopped!"
-            )
+            await Interaction.followup.send(f"⚠️ Server `{server_id}` has been forcefully stopped!")
             self.logger.warning(f"Server `{server_id}` has been forcefully stopped")
         else:
-            await Interaction.followup.send(
-                f"❌ Failed to kill server `{server_id}`: {message}"
-            )
+            await Interaction.followup.send(f"❌ Failed to kill server `{server_id}`: {message}")
             self.logger.error(f"Failed to kill server `{server_id}`: {message}")
 
-    @power.command(name="pt_state")
+    @power.command(name="state")
     @app_commands.checks.has_permissions(administrator=True)
     async def power_state(self, Interaction: discord.Interaction, server_id: str):
         """Fetches and displays the current power state of the specified server"""
@@ -194,27 +166,17 @@ class QuantumPterodactyl(commands.Cog):
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
                         data = await response.json()
-                        power_state = data.get("attributes", {}).get(
-                            "current_state", "Unknown"
-                        )
+                        power_state = data.get("attributes", {}).get("current_state", "Unknown")
 
                         # Send the power state as a message
-                        await Interaction.followup.send(
-                            f"The current power state of server `{server_id}` is: `{power_state}`"
-                        )
-                        self.logger.info(
-                            f"Power state fetched for server `{server_id}`: {power_state}"
-                        )
+                        await Interaction.followup.send(f"The current power state of server `{server_id}` is: `{power_state}`")
+                        self.logger.info(f"Power state fetched for server `{server_id}`: {power_state}")
                     else:
                         error_text = await response.text()
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        await Interaction.followup.send(
-                            f"❌ Failed to fetch power state. Status: {response.status}"
-                        )
+                        await Interaction.followup.send(f"❌ Failed to fetch power state. Status: {response.status}")
         except Exception as e:
-            self.logger.error(
-                f"Error fetching power state for server `{server_id}`: {str(e)}"
-            )
+            self.logger.error(f"Error fetching power state for server `{server_id}`: {str(e)}")
             await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
     #server = app_commands.Group(name="pt_list", description="Server information.")
@@ -240,7 +202,10 @@ class QuantumPterodactyl(commands.Cog):
                     if response.status == 200:
                         server_list = []
                         data = await response.json()
+                        
                         for server in data["data"]:
+                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']})")
+                        '''
                             time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
@@ -250,7 +215,6 @@ class QuantumPterodactyl(commands.Cog):
                                 "Accept": "application/json",
                                 "Content-Type": "application/json",
                             }
-
                             try:
                                 async with aiohttp.ClientSession() as session:
                                     async with session.get(url, headers=headers) as response:
@@ -267,17 +231,16 @@ class QuantumPterodactyl(commands.Cog):
                                 #await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
                         server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
-                        formatted_list = "\n".join(server_list)
-                        await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
+                        '''
+                        await Interaction.followup.send(f"-----Servers-----\n{server_list}")
                     else:
                         error_text = await response.text()
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        #await Interaction.followup.send(f"❌ Failed to list servers. Status: {response.status}")
+                        await Interaction.followup.send(f"❌ Failed to list servers. Status: {response.status}")
         except Exception as e:
             print(f'Error listing servers: {str(e)}')
             self.logger.error(f"Error listing servers: {str(e)}")
             await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
-
 
 async def setup(bot):
     await bot.add_cog(QuantumPterodactyl(bot))
