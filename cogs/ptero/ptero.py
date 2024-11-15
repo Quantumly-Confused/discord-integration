@@ -61,7 +61,7 @@ class QuantumPterodactyl(commands.Cog):
             signal (str): One of 'start', 'stop', 'restart', 'kill'
             server_id (str): The server ID to target for the power signal
         """
-        url = f"{self.panel_url}/api/client/servers/{server_id}/power"
+        url = f"{self.panel_url}/api/application/servers/{server_id}/power"
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -151,7 +151,7 @@ class QuantumPterodactyl(commands.Cog):
         """Fetches and displays the current power state of the specified server"""
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}/api/client/servers/{server_id}/resources"
+        url = f"{self.panel_url}/api/application/servers/{server_id}/resources"
         self.logger.info(f"Fetching power state from {url}")
 
         headers = {
@@ -188,7 +188,7 @@ class QuantumPterodactyl(commands.Cog):
         """
         await Interaction.response.defer()
 
-        url = f"{self.panel_url}/api/client"
+        url = f"{self.panel_url}/api/applications/servers"
         self.logger.info(f"Fetching server list from {url}")
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -204,7 +204,7 @@ class QuantumPterodactyl(commands.Cog):
                         embed = discord.Embed(title='QC - Server List',colour=436557,)
                         embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
-                            url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
+                            url = f"{self.panel_url}/api/application/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
 
                             headers = {
