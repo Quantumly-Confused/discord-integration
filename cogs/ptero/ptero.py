@@ -216,9 +216,9 @@ class QuantumPterodactyl(commands.Cog):
             )
             await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
-    server = app_commands.Group(name="pt_list", description="Server information.")
-
-    @server.command(name="pt_list", description="List all game servers")
+    #server = app_commands.Group(name="pt_list", description="Server information.")
+    #@server.command(name="pt_list", description="List all game servers")
+    @app_commands.command(name="pt_list", description="List all QuantumPterodactyl commands")
     @app_commands.checks.has_permissions(administrator=True, manage_guild=True)
     async def list_servers(self, Interaction: discord.Interaction):
         """
@@ -237,8 +237,8 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
+                        server_list = []
                         data = await response.json()
-
                         for server in data["data"]:
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
@@ -259,21 +259,18 @@ class QuantumPterodactyl(commands.Cog):
                                         else:
                                             error_text = await response.text()
                                             self.logger.error(f"Pterodactyl API error: {error_text}")
-                                            await Interaction.followup.send(f"❌ Failed to fetch power state. Status: {response.status}")
+                                            #await Interaction.followup.send(f"❌ Failed to fetch power state. Status: {response.status}")
                             except Exception as e:
                                 self.logger.error(f"Error fetching list power state for server `{server_id}`: {str(e)}")
-                                await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
+                                #await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
-                        server_list.add(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
-                        
+                        server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         formatted_list = "\n".join(server_list)
                         await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
                     else:
                         error_text = await response.text()
                         self.logger.error(f"Pterodactyl API error: {error_text}")
-                        await Interaction.followup.send(
-                            f"❌ Failed to list servers. Status: {response.status}"
-                        )
+                        #await Interaction.followup.send(f"❌ Failed to list servers. Status: {response.status}")
         except Exception as e:
             print(f'Error listing servers: {str(e)}')
             self.logger.error(f"Error listing servers: {str(e)}")
