@@ -203,7 +203,7 @@ class QuantumPterodactyl(commands.Cog):
                         data = await response.json()
                         
                         for server in data["data"]:
-                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']})")
+                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}\n")
                         '''
                             time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
