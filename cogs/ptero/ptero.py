@@ -203,7 +203,7 @@ class QuantumPterodactyl(commands.Cog):
                         data = await response.json()
                         
                         for server in data["data"]:
-                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}\n")
+                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
                         '''
                             time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
@@ -232,7 +232,9 @@ class QuantumPterodactyl(commands.Cog):
                         server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         '''
                         formatted_list = "\n".join(server_list)
-                        await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
+                        embed = discord.Embed(title='QC - Server List',description={formatted_list},colour=436557,)
+                        embed.set_image(url='https://ibb.co/5RShgqH')
+                        await Interaction.followup.send(embed)
                     else:
                         error_text = await response.text()
 
