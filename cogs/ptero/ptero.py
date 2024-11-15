@@ -240,7 +240,6 @@ class QuantumPterodactyl(commands.Cog):
                         data = await response.json()
 
                         for server in data["data"]:
-                        {
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
                             self.logger.info(f"Fetching list power state from {url}")
 
@@ -266,7 +265,7 @@ class QuantumPterodactyl(commands.Cog):
                                 await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
                         server_list.add(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
-                        }
+                        
                         formatted_list = "\n".join(server_list)
                         await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
                     else:
