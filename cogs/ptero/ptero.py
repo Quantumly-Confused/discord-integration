@@ -14,6 +14,7 @@ import aiohttp
 import os
 from dotenv import load_dotenv
 import logging
+import time
 
 
 class QuantumPterodactyl(commands.Cog):
