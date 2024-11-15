@@ -234,7 +234,7 @@ class QuantumPterodactyl(commands.Cog):
                         formatted_list = "\n".join(server_list)
                         embed = discord.Embed(title='QC - Server List',description={formatted_list},colour=436557,)
                         embed.set_image(url='https://ibb.co/5RShgqH')
-                        await Interaction.followup.send(embed)
+                        await Interaction.followup.send(embed=embed)
                     else:
                         error_text = await response.text()
 
