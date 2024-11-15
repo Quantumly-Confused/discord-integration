@@ -31,18 +31,18 @@ class QuantumPterodactyl(commands.Cog):
             raise ValueError("Missing required Pterodactyl dotenv variables")
 
     @app_commands.command(
-        name="pt commands", description="List all QuantumPterodactyl commands"
+        name="pt_commands", description="List all QuantumPterodactyl commands"
     )
     async def list_commands(self, Interaction: discord.Interaction):
         """QuantumPterodactyl command list:"""
         commands_list = [
-            "/pt list - List all Pterodactyl game servers",
-            "/pt power state <serverid:str> - Get the current state of the game server",
-            "/pt power start <serverid:str> - Starts the game server",
-            "/pt power stop <serverid:str> - Stops the game server gracefully",
-            "/pt power restart <serverid:str> - Restarts the game server",
-            "/pt power kill <serverid:str> - Forcefully stops the game server",
-            "/pt commands - Lists all available QuantumPterodactyl commands",
+            "/pt_list - List all Pterodactyl game servers",
+            "/pt_power state <serverid:str> - Get the current state of the game server",
+            "/pt_power start <serverid:str> - Starts the game server",
+            "/pt_power stop <serverid:str> - Stops the game server gracefully",
+            "/pt_power restart <serverid:str> - Restarts the game server",
+            "/pt_power kill <serverid:str> - Forcefully stops the game server",
+            "/pt_commands - Lists all available QuantumPterodactyl commands",
         ]
         commands_message = "\n".join(commands_list)
         await Interaction.response.send_message(
@@ -173,7 +173,7 @@ class QuantumPterodactyl(commands.Cog):
             )
             self.logger.error(f"Failed to kill server `{server_id}`: {message}")
 
-    @power.command(name="pt state")
+    @power.command(name="pt_state")
     @app_commands.checks.has_permissions(administrator=True)
     async def power_state(self, Interaction: discord.Interaction, server_id: str):
         """Fetches and displays the current power state of the specified server"""
@@ -218,7 +218,7 @@ class QuantumPterodactyl(commands.Cog):
 
     server = app_commands.Group(name="pt list", description="Server information.")
 
-    @server.command(name="pt list", description="List all game servers")
+    @server.command(name="pt_list", description="List all game servers")
     @app_commands.checks.has_permissions(administrator=True, manage_guild=True)
     async def list_servers(self, Interaction: discord.Interaction):
         """
