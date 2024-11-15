@@ -232,8 +232,8 @@ class QuantumPterodactyl(commands.Cog):
                         server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         '''
                         formatted_list = "\n".join(server_list)
-                        embed = discord.Embed(title='QC - Server List',description={formatted_list},colour=436557,)
-                        embed.set_image(url='https://ibb.co/5RShgqH')
+                        embed = discord.Embed(title='QC - Server List',description=f"{formatted_list}",colour=436557,)
+                        embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         await Interaction.followup.send(embed=embed)
                     else:
                         error_text = await response.text()
