@@ -201,9 +201,11 @@ class QuantumPterodactyl(commands.Cog):
                     if response.status == 200:
                         server_list = []
                         data = await response.json()
-                        
+                        embed = discord.Embed(title='QC - Server List',description=f"{formatted_list}",colour=436557,)
+                        embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
-                            server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
+                            #server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
+                            embed.addField(name=f"{server['attributes']['name']}", id=f"{server['attributes']['identifier']}")
                         '''
                             time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
@@ -231,9 +233,6 @@ class QuantumPterodactyl(commands.Cog):
 
                         server_list.append(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
                         '''
-                        formatted_list = "\n".join(server_list)
-                        embed = discord.Embed(title='QC - Server List',description=f"{formatted_list}",colour=436557,)
-                        embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         await Interaction.followup.send(embed=embed)
                     else:
                         error_text = await response.text()
