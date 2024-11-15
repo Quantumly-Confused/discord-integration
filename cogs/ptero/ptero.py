@@ -2,6 +2,7 @@
 #
 # Author:
 #    Dave Chadwick (github.com/ropeadope62)
+#    Patrick Downing (github.com/padraignix)
 # Version:
 #    0.1
 
@@ -30,18 +31,18 @@ class QuantumPterodactyl(commands.Cog):
             raise ValueError("Missing required Pterodactyl dotenv variables")
 
     @app_commands.command(
-        name="commands", description="List all QuantumPterodactyl commands"
+        name="pt commands", description="List all QuantumPterodactyl commands"
     )
     async def list_commands(self, Interaction: discord.Interaction):
         """QuantumPterodactyl command list:"""
         commands_list = [
-            "/server list - List all PteroDactyl game servers",
-            "/power state <serverid:str> - Get the current state of the game server",
-            "/power start <serverid:str> - Starts the game server",
-            "/power stop <serverid:str> - Stops the game server gracefully",
-            "/power restart <serverid:str> - Restarts the game server",
-            "/power kill <serverid:str> - Forcefully stops the game server",
-            "/commands - Lists all available QuantumPterodactyl commands",
+            "/pt list - List all Pterodactyl game servers",
+            "/pt power state <serverid:str> - Get the current state of the game server",
+            "/pt power start <serverid:str> - Starts the game server",
+            "/pt power stop <serverid:str> - Stops the game server gracefully",
+            "/pt power restart <serverid:str> - Restarts the game server",
+            "/pt power kill <serverid:str> - Forcefully stops the game server",
+            "/pt commands - Lists all available QuantumPterodactyl commands",
         ]
         commands_message = "\n".join(commands_list)
         await Interaction.response.send_message(
@@ -67,7 +68,6 @@ class QuantumPterodactyl(commands.Cog):
             server_id (str): The server ID to target for the power signal
         """
         url = f"{self.panel_url}/api/client/servers/{server_id}/power"
-        print(f'Sending {signal} signal to server {server_id}...') #! Debug Print
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
@@ -79,7 +79,6 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=data) as response:
                     if response.status == 204:  # Success with no content
-                        print(f'Successfully sent {signal} signal to server {server_id}') #! Debug Print
                         self.logger.info(
                             f"Successfully sent {signal} signal to server {server_id}"
                         )
@@ -89,20 +88,18 @@ class QuantumPterodactyl(commands.Cog):
                         )
                     else:
                         error_text = await response.text()
-                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
                         return (
                             False,
                             f"Failed to send {signal} signal. Status: {response.status}",
                         )
         except Exception as e:
-            print(f'Error sending power signal to server {server_id}: {str(e)}') #! Debug Print
             self.logger.error(
                 f"Error sending power signal to server {server_id}: {str(e)}"
             )
             return False, f"Error occurred: {str(e)}"
 
-    power = app_commands.Group(name="power", description="Control server power state.")
+    power = app_commands.Group(name="pt power", description="Control server power state.")
 
     @power.command(name="start")
     @app_commands.checks.has_permissions(administrator=True)
@@ -114,13 +111,11 @@ class QuantumPterodactyl(commands.Cog):
 
         if success:
             await Interaction.followup.send(f"🟢 Server `{server_id}` is starting up...")
-            print(f'Successfully started server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is starting up")
         else:
             await Interaction.followup.send(
                 f"❌ Failed to start server `{server_id}`: {message}"
             )
-            print(f'Failed to start server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to start server `{server_id}`: {message}")
 
     @power.command(name="stop")
@@ -135,13 +130,11 @@ class QuantumPterodactyl(commands.Cog):
             await Interaction.followup.send(
                 f"🔴 Server `{server_id}` is shutting down..."
             )
-            print(f'Successfully stopped server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is shutting down")
         else:
             await Interaction.followup.send(
                 f"❌ Failed to stop server `{server_id}`: {message}"
             )
-            print(f'Failed to stop server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to stop server `{server_id}`: {message}")
 
     @power.command(name="restart")
@@ -154,13 +147,11 @@ class QuantumPterodactyl(commands.Cog):
 
         if success:
             await Interaction.followup.send(f"🔄 Server `{server_id}` is restarting...")
-            print(f'Successfully restarted server {server_id}') #! Debug Print
             self.logger.info(f"Server `{server_id}` is restarting")
         else:
             await Interaction.followup.send(
                 f"❌ Failed to restart server `{server_id}`: {message}"
             )
-            print(f'Failed to restart server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to restart server `{server_id}`: {message}")
 
     @power.command(name="kill")
@@ -175,24 +166,22 @@ class QuantumPterodactyl(commands.Cog):
             await Interaction.followup.send(
                 f"⚠️ Server `{server_id}` has been forcefully stopped!"
             )
-            print(f'Successfully killed server {server_id}') #! Debug Print
             self.logger.warning(f"Server `{server_id}` has been forcefully stopped")
         else:
             await Interaction.followup.send(
                 f"❌ Failed to kill server `{server_id}`: {message}"
             )
-            print(f'Failed to kill server {server_id}: {message}') #! Debug Print
             self.logger.error(f"Failed to kill server `{server_id}`: {message}")
 
-    @power.command(name="state")
+    @power.command(name="pt state")
     @app_commands.checks.has_permissions(administrator=True)
     async def power_state(self, Interaction: discord.Interaction, server_id: str):
         """Fetches and displays the current power state of the specified server"""
         await Interaction.response.defer()
 
         url = f"{self.panel_url}/api/client/servers/{server_id}/resources"
-        print(f'url is {url}') #! Debug Print
-        print(f'Fetching power state for server {server_id}...') #! Debug Print
+        self.logger.info(f"Fetching power state from {url}")
+
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json",
@@ -203,7 +192,6 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
-                        print(f'Successfully fetched power state for server {server_id}') #! Debug Print
                         data = await response.json()
                         power_state = data.get("attributes", {}).get(
                             "current_state", "Unknown"
@@ -213,27 +201,24 @@ class QuantumPterodactyl(commands.Cog):
                         await Interaction.followup.send(
                             f"The current power state of server `{server_id}` is: `{power_state}`"
                         )
-                        print(f'Power state fetched for server {server_id}: {power_state}') #! Debug Print
                         self.logger.info(
                             f"Power state fetched for server `{server_id}`: {power_state}"
                         )
                     else:
                         error_text = await response.text()
-                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
                         await Interaction.followup.send(
                             f"❌ Failed to fetch power state. Status: {response.status}"
                         )
         except Exception as e:
-            print(f'Error fetching power state for server {server_id}: {str(e)}') #! Debug Print
             self.logger.error(
                 f"Error fetching power state for server `{server_id}`: {str(e)}"
             )
             await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
 
-    server = app_commands.Group(name="server", description="Server information.")
+    server = app_commands.Group(name="pt list", description="Server information.")
 
-    @server.command(name="list", description="List all game servers")
+    @server.command(name="pt list", description="List all game servers")
     @app_commands.checks.has_permissions(administrator=True, manage_guild=True)
     async def list_servers(self, Interaction: discord.Interaction):
         """
@@ -242,8 +227,7 @@ class QuantumPterodactyl(commands.Cog):
         await Interaction.response.defer()
 
         url = f"{self.panel_url}/api/client"
-        print(f'url is {url}') #! Debug Print
-        print(f'Fetching server list from {url}') #! Debug Print
+        self.logger.info(f"Fetching server list from {url}")
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Accept": "application/json",
@@ -253,19 +237,40 @@ class QuantumPterodactyl(commands.Cog):
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=headers) as response:
                     if response.status == 200:
-                        print(f'Successfully fetched server list') #! Debug Print
                         data = await response.json()
-                        server_list = [
-                            f"{server['attributes']['name']} (ID: {server['attributes']['identifier']})"
-                            for server in data["data"]
-                        ]
+
+                        for server in data["data"]:
+                        {
+                            url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
+                            self.logger.info(f"Fetching list power state from {url}")
+
+                            headers = {
+                                "Authorization": f"Bearer {self.api_key}",
+                                "Accept": "application/json",
+                                "Content-Type": "application/json",
+                            }
+
+                            try:
+                                async with aiohttp.ClientSession() as session:
+                                    async with session.get(url, headers=headers) as response:
+                                        if response.status == 200:
+                                            data_list = await response.json()
+                                            power_state = data_list.get("attributes", {}).get("current_state", "Unknown")
+                                            self.logger.info(f"Power state fetched for server `{server}`: {power_state}")
+                                        else:
+                                            error_text = await response.text()
+                                            self.logger.error(f"Pterodactyl API error: {error_text}")
+                                            await Interaction.followup.send(f"❌ Failed to fetch power state. Status: {response.status}")
+                            except Exception as e:
+                                self.logger.error(f"Error fetching list power state for server `{server_id}`: {str(e)}")
+                                await Interaction.followup.send(f"❌ Error occurred: {str(e)}")
+
+                        server_list.add(f"{server['attributes']['name']} | {server['attributes']['identifier']} | {power_state}")
+                        }
                         formatted_list = "\n".join(server_list)
-                        await Interaction.followup.send(
-                            f"**Servers:**\n{formatted_list}"
-                        )
+                        await Interaction.followup.send(f"-----Servers-----\n{formatted_list}")
                     else:
                         error_text = await response.text()
-                        print(f'Pterodactyl API error: {error_text}') #! Debug Print
                         self.logger.error(f"Pterodactyl API error: {error_text}")
                         await Interaction.followup.send(
                             f"❌ Failed to list servers. Status: {response.status}"
@@ -279,4 +284,3 @@ class QuantumPterodactyl(commands.Cog):
 async def setup(bot):
     await bot.add_cog(QuantumPterodactyl(bot))
     bot.logger.info("Cog loaded: QuantumPterodactyl v0.1")
-    print("Cog loaded: QuantumPterodactyl v0.1") #! Debug Print
