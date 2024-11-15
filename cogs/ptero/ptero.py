@@ -205,7 +205,7 @@ class QuantumPterodactyl(commands.Cog):
                         embed.set_image(url='https://i.ibb.co/ZMFzpyD/qcadmin.png')
                         for server in data["data"]:
                             #server_list.append(f"{server['attributes']['name']} - {server['attributes']['identifier']}")
-                            embed.add_field(name=f"{server['attributes']['name']}", id=f"{server['attributes']['identifier']}", inline=False)
+                            embed.add_field(name=f"{server['attributes']['name']}", value=f"{server['attributes']['identifier']}", inline=False)
                         '''
                             time.sleep(2)
                             url = f"{self.panel_url}/api/client/servers/{server['attributes']['identifier']}/resources"
